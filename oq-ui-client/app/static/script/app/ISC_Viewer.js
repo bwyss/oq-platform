@@ -124,6 +124,7 @@ ISC_Viewer = Ext.extend(gxp.Viewer, {
                 ptype: "gxp_queryform",
                 featureManager: "featuremanager",
                 actionTarget: {target: "paneltbar"},
+                queryByAttributesText: "test",
                 outputConfig: {
                     title: "Query",
                     width: 320
