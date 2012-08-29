@@ -89,7 +89,7 @@ ISC_Viewer = Ext.extend(gxp.Viewer, {
                 maxFeatures: 100
             }, {
                 ptype: "gxp_featuregrid",
-                alwaysDisplayOnMap: true,
+                alwaysDisplayOnMap: false,
                 selectOnMap: true,
                 displayMode: "selected",
                 featureManager: "featuremanager",
