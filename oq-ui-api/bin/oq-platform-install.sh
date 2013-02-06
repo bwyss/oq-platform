@@ -18,8 +18,8 @@
 # PUBLIC GLOBAL VARS
 # version managements - use "master" or tagname to move to other versions
 
-export GEM_OQ_PLATF_GIT_REPO=git://github.com/gem/oq-platform.git
-export GEM_OQ_PLATF_GIT_VERS=exposure_export
+export GEM_OQ_PLATF_GIT_REPO=git://github.com/bwyss/oq-platform.git
+export GEM_OQ_PLATF_GIT_VERS=master
 
 export GEM_OQ_PLATF_SUBMODS="oq-ui-client/app/static/externals/geoext
 oq-ui-client/app/static/externals/gxp
@@ -40,6 +40,7 @@ export GEM_TMPDIR="gem_tmp"
 # GEM_BASEDIR ==REQUIRES== "/" at the end
 export GEM_BASEDIR="/var/lib/openquake/"
 export GEM_GN_LOCSET="/etc/geonode/local_settings.py"
+export GEM_DJANGO_MENU="${GEM_BASEDIR}oq-ui-api/etc/geonode/templates/oq-platform/includes/menu.html"
 export GEM_GN_SETTINGS="/var/lib/geonode/src/GeoNodePy/geonode/settings.py"
 export GEM_GN_URLS="/var/lib/geonode/src/GeoNodePy/geonode/urls.py"
 export GEM_NW_SETTINGS="/etc/geonode/geonetwork/config.xml"
@@ -281,8 +282,9 @@ oq_platform_install () {
    
         while [ true ]; do
             # Get exposure info
-            read -p "Do you want to install the Exposure Export tool (this requires a database connection to the EQGED database) (y/n)?" with_exposure
-            if [ $with_exposure = "y" -o "$with_exposure" = "Y" ]; then
+            read -p "Do you want to install the Exposure Export tool (this requires a database connection to the EQGED database) (y/n)?" GEM_WITH_EXPOSURE
+	    export GEM_WITH_EXPOSURE
+            if [ $GEM_WITH_EXPOSURE = "y" -o "$GEM_WITH_EXPOSURE" = "Y" ]; then
                 #get the user
                 read -p "MANDATORY: GED DB user [$GED_USERNAME]: " newval
                 if [ "$newval" != "" ]; then
@@ -317,7 +319,7 @@ oq_platform_install () {
                         break
                     fi
             fi
-            if [ $with_exposure = "n" -o "$with_exposure" = "N" ]; then
+            if [ $GEM_WITH_EXPOSURE = "n" -o "$GEM_WITH_EXPOSURE" = "N" ]; then
 		break 
 	    fi
         done
@@ -429,7 +431,7 @@ SOUTH_DATABASE_ADAPTERS = {
     sed -i "s@\(<url>jdbc:postgresql:\)[^<]*@\1$GEM_DB_NAME@g" "$GEM_NW_SETTINGS"
 
     #exposure tool options 
-    if [ $with_exposure = "y" -o "$with_exposure" = "Y" ]; then
+    if [ $GEM_WITH_EXPOSURE = "y" -o "$GEM_WITH_EXPOSURE" = "Y" ]; then
         sed -i 's/^\(DB_DATASTORE=True.*\)/\1\n\nDATABASE_ROUTERS = ["exposure.router.GedRouter"]\n/g' "$GEM_GN_LOCSET"
         sed -i 's/^\(DATABASES = {.*\)/\1\n     "geddb": {\n         "ENGINE": "django.db.backends.postgresql_psycopg2",\n         "NAME": "ged",\n         "USER": "'$GED_USERNAME'",\n         "PASSWORD": "'$GED_PASSWORD'",\n         "HOST": "'$GED_HOST'",\n         "PORT": '$GED_PORT',\n         "OPTIONS": {\n             "sslmode": "require",\n         }\n    },/g' "$GEM_GN_LOCSET"
     fi
@@ -519,7 +521,7 @@ exit 0"
     installed_apps_add 'geonode.isc_viewer'
 
     # add exposure when indicated by user
-    if [ $with_exposure = "y" -o "$with_exposure" = "Y" ]; then
+    if [ $GEM_DJANGO_MENU = "y" -o "$GEM_DJANGO_MENU" = "Y" ]; then
         installed_apps_add 'geonode.exposure'
     fi
 
@@ -532,7 +534,7 @@ exit 0"
     sed -i "s@urlpatterns *= *patterns('',@urlpatterns = patterns('',\n    # added by geonode-installation.sh script\n    (r'^observations/', include('geonode.observations.urls')),@g" "$GEM_GN_URLS"
 
     # add exposure when indicated by user
-    if [ $with_exposure = "y" -o "$with_exposure" = "Y" ]; then
+    if [ "$GEM_WITH_EXPOSURE" = "y" -o "$GEM_WITH_EXPOSURE" = "Y" ]; then
     sed -i "s@urlpatterns *= *patterns('',@urlpatterns = patterns('',\n    url(r'^oq-platform2/exposure_export.html$', 'django.views.generic.simple.direct_to_template',\n    {'t    emplate': 'oq-platform2/exposure_export.html'}, name='exposure_grid'),\n@g" "$GEM_GN_URLS"
     sed -i "s@urlpatterns *= *patterns('',@urlpatterns = patterns('',\n    (r'^exposure/', include('geonode.exposure.urls')),\n@g" "$GEM_GN_URLS"
     fi
